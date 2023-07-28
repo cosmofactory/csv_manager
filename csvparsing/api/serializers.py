@@ -1,16 +1,30 @@
 from api.models import Deal
 from rest_framework import serializers
-import csv
-from django.core.files.base import ContentFile
-from django.core.files.storage import FileSystemStorage
 
 
-class DealsSerializer(serializers.ModelSerializer):
-    """Serializes incoming .csv file."""
+class DealsSerializer(serializers.Serializer):
+    """Serializes top 5 most valuable customers."""
+
+    response = serializers.SerializerMethodField()
 
     class Meta:
-        model = Deal
-        fields = ['customer', 'item', 'total', 'quantity', 'date']
+        fields = ['response']
+
+    def get_response(self, obj):
+        gems_list = []
+        for data in obj:
+            gems = set(Deal.objects.filter(
+                customer=data['username']
+            ).values_list('item', flat=True))
+            for i in list(gems):
+                gems_list.append(i)
+            data['gems'] = list(gems)
+        for data in obj:
+            for gem in data['gems']:
+                amount = gems_list.count(gem)
+                if amount == 1:
+                    data['gems'].remove(gem)
+        return obj
 
 
 class ImportCsvSerializer(serializers.Serializer):
