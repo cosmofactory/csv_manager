@@ -9,10 +9,8 @@ services:
       - ./db/:/root/db/
 
   web:
-    build: ../csvparsing
+    image: cosmosfactory/csvparsing:latest
     restart: always
-    ports:
-      - "8000:8000"
     volumes:
       - static_value:/app/static/
     depends_on:
